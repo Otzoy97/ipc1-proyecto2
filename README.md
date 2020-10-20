@@ -34,6 +34,8 @@ $ git push heroku main
 $ heroku config:set MONGO_URI=<mongo_uri>
 
 $ heroku config:set JWT_SECRET_KEY=<secret_key>
+
+$ heroku run python app.py
 ```
 Reemplazar <mongo_uri> con la [cadena de conección](https://docs.atlas.mongodb.com/connect-to-cluster/#use-the-connect-dialog-to-connect-to-your-cluster) del cluster de mongoDB Atlas y <secret_key> con un texto que sea difícil de adivinar.
 
