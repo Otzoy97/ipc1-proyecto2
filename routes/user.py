@@ -4,6 +4,7 @@ from models.user import User
 from mongoengine.errors import DoesNotExist, NotUniqueError
 import datetime
 from flask_jwt_extended.utils import create_access_token
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 users = Blueprint('users', __name__)
 
@@ -14,7 +15,7 @@ def sign_up():
         body = request.get_json()
         user = User(**body).save()
         id = user.id
-        return {'id': str(id)}, 200
+        return {'message': 'Usuario creado'}, 200
     except NotUniqueError:
         raise DuplicatedUser('El usuario ya existe', status_code=400)
 
@@ -39,6 +40,18 @@ def recover_pwd():
         return {'pwd': str(user.pwd)}, 200
     except DoesNotExist:
         raise UserNotExist('Usuario no existe', status_code=401)
+
+## Actualizar usuario
+@users.route('/users/update', methods=['PUT'])
+@jwt_required
+def update():
+    try:
+        user_id = get_jwt_identity()
+        body = request.get_json()
+        User.objects.get(id=user_id).update(**body)
+        return {'message': 'Usuario actualizado'}, 200
+    except NotUniqueError:
+        raise DuplicatedUser('El usuario ya existe', status_code=400)
 
 @users.errorhandler(DuplicatedUser)
 def handle_not_unique_error(error):
