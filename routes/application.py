@@ -1,18 +1,41 @@
 from flask import Blueprint, Response, jsonify, request
 from models.models import Application, Category
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from mongoengine.errors import DoesNotExist
 
 apps = Blueprint('apps', __name__)
 
-# @apps.route('/apps/upload', methods=['GET', 'POST'])
-# @jwt_required
-# def upload_apps():
-#     if request.method == 'POST':
-#         ## verifica que se haya subido un archivo
-#         if 'file' in request.files:
-#             file = request.files['file']
-#             ## verifica que no sea un archivo vacío
-#             if file.filename != '':
+@apps.route('/apps/upload', methods=['POST'])
+def upload():
+    body = request.get_json()
+    errores = False
+    try:
+        # itera la carga y recupera los datos de la aplicación
+        # y la categoría
+        for app in body:
+            try:
+                # busca la categoría por nombre
+                category = Category.objects.get(name=app.get('name'))
+            except DoesNotExist:
+                # si no existe se salta ese objeto
+                errores = True
+                continue
+            # si la categoría existe almacena la aplicación
+            app = Application(
+                title = app.get("title"),
+                url = app.get("url"),
+                cat = category,
+                downloads = app.get("downloads"),
+                des = app.get("des"),
+                price = app.get("price"),
+                likes = app.get("likes")
+            ).save()
+            # actualiza la categoría
+            category.update(push__apps=app)
+        # al terminar envía el resultado de la operación
+        return {'message': 'Carga recibida ' + 'con errores' if errores else 'sin errores'}, 200
+    except Exception as e:
+        return {'message': 'Ocurrió un error'}, 400
 
 @apps.route('/apps/update', methods=['PUT'])
 def update():
