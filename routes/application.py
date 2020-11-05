@@ -7,6 +7,8 @@ apps = Blueprint('apps', __name__)
 
 @apps.route('/apps/upload', methods=['POST'])
 def upload():
+    """Crea aplicaciones utilizando la información de un json
+    que se presupone se construyó al leer un archivo csv"""
     body = request.get_json()
     errores = False
     try:
@@ -15,7 +17,7 @@ def upload():
         for app in body:
             try:
                 # busca la categoría por nombre
-                category = Category.objects.get(name=app.get('name'))
+                category = Category.objects.get(name=app.get('cat'))
             except DoesNotExist:
                 # si no existe se salta ese objeto
                 errores = True
@@ -37,8 +39,32 @@ def upload():
     except Exception as e:
         return {'message': 'Ocurrió un error'}, 400
 
+@apps.route('/apps/list', methods = ['GET'])
+def list():
+    """Devuelve una lista de todas las aplicaciones del sistema"""
+    try:
+        applications = []
+        for c in Application.objects.all():
+            applications.append({
+                "title": c.title,
+                "url": c.url,
+                "cat": {
+                    "id" : str(c.cat.id),
+                    "name": c.cat.name
+                    },
+                "downloads": c.downloads,
+                "des": c.des,
+                "price": float(c.price),
+                "likes": c.likes
+            })
+        return {'payload': applications}, 200
+    except Exception as e:
+        print(e)
+        return {'message': 'No se pudo recuperar las aplicaciones'}, 400
+
 @apps.route('/apps/update', methods=['PUT'])
 def update():
+    """Actualiza una aplicación"""
     body = request.get_json()
     try:
         Application.objects.get(id=body.get('id')).update(**body)
@@ -48,6 +74,8 @@ def update():
 
 @apps.route('/apps/create', methods=['POST'])
 def create():
+    """Crea una aplicación. La categoría de la aplicación debe ser 
+    pasada por id, no por nombre"""
     body = request.get_json()
     try:
         category = Category.objects.get(id=body.get('cat'))
@@ -59,6 +87,7 @@ def create():
 
 @apps.route('/apps/delete', methods=['DELETE'])
 def delete():
+    """Elimina una aplicación utilizando el id"""
     body = request.get_json()
     try:
         Application(id = body.get('id')).delete()
