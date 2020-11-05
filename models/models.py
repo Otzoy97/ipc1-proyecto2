@@ -4,6 +4,7 @@ class Review(db.Document):
     user = db.ReferenceField('User')
     app = db.ReferenceField('Application')
     txt = db.StringField()
+    rating = db.IntField()
 
 class User(db.Document):
     name = db.StringField(required=True, max_length=50)
@@ -22,6 +23,7 @@ class Application(db.Document):
     des = db.StringField()
     price = db.DecimalField(default = 0.00)
     likes = db.IntField(default = 0)
+    auth = db.BooleanField(default = True) # indica si la aplicación ya fue autorizada por un admin
 
 class Category(db.Document):
     name = db.StringField(unique = True)
